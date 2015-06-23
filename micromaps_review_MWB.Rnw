@@ -49,7 +49,8 @@ To address:
 
 Ideas:
 \begin{itemize}
-\item Data input that is linked to the map data could be provided as non-summarized, with a user-supplied summary function to improve flexibility and reduce burden on the user
+\item Encourage use of S3 object class methods. 
+\item Data input that is linked to the map data could be provided in raw format, with a user-supplied summary function to improve flexibility and reduce burden on the user, e.g., additional arguments passed to mmplot or mmgroupedplot
 \item Similarly, polygon simplification could be incorporated into the package
 \item The multiplot function shown in figure 3 of the JSS article could be incorporated directly in the package
 \item From JSS manuscript - add histrograms, ts, symbol plots, etc. and incorporate interactivity (via shiny)
