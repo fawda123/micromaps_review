@@ -1,0 +1,58 @@
+\documentclass[letterpaper,12pt]{article}
+\usepackage[top=1in,bottom=1in,left=1in,right=1in]{geometry}
+\usepackage{setspace}
+\usepackage[colorlinks=true,urlcolor=blue,citecolor=blue,linkcolor=blue]{hyperref}
+\usepackage{indentfirst}
+\usepackage{multirow}
+\usepackage{booktabs}
+\usepackage[final]{animate}
+\usepackage{graphicx}
+\usepackage{verbatim}
+\usepackage{rotating}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{subfig} 
+\usepackage[noae]{Sweave}
+\usepackage{cleveref}
+\usepackage[figureposition=bottom]{caption}
+\usepackage{paralist}
+\usepackage{acronym}
+\usepackage{outlines}
+\usepackage{pdflscape}
+
+% knitr options
+<<setup, echo = FALSE, cache = F>>=
+library(knitr)
+# set global chunk options
+opts_chunk$set(fig.path = 'figs/', fig.align = 'center', fig.show = 'hold',message = F, results = 'asis',dev = 'pdf',dev.args=list(family='serif'), fig.pos = '!ht', warning = F)
+options(replace.assign=TRUE,width=90)
+@
+
+<<echo = FALSE, message = FALSE>>=
+
+@
+
+\begin{document}
+
+\title{Review of the micromaps R package}
+\author{Marcus W. Beck}
+\maketitle
+
+To address:
+\begin{itemize}
+\item Do you find the syntax of the micromap package easy to understand?
+\item Could the main functions of the package, create\_map\_table, mmplot, and mmgroupedplot, be improved?
+\item Is there anything about the structure of micromap objects that could be improved – for instance, in order to use micromap objects in R Shiny, or to make setting micomap plot options more expressive (such as adding plotting elements to a geom in ggplot2)?
+\item Is there some functionality of the package that you think is missing?
+\item Is the documentation in the Introduction Guide, which comes with the package, and the JSS article helpful?
+\end{itemize}
+
+Ideas:
+\begin{itemize}
+\item Data input that is linked to the map data could be provided as non-summarized, with a user-supplied summary function to improve flexibility and reduce burden on the user
+\item Similarly, polygon simplification could be incorporated into the package
+\item The multiplot function shown in figure 3 of the JSS article could be incorporated directly in the package
+\item From JSS manuscript - add histrograms, ts, symbol plots, etc. and incorporate interactivity (via shiny)
+\end{itemize}
+
+\end{document}
