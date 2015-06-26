@@ -72,33 +72,31 @@
 % knitr options
 
 
+\setlength{\parskip}{\baselineskip}
+\setlength{\parindent}{0pt}
 \IfFileExists{upquote.sty}{\usepackage{upquote}}{}
 \begin{document}
 
 \title{Review of the micromaps R package}
 \author{Marcus W. Beck}
 \maketitle
+\raggedright
 
-To address:
-\begin{itemize}
-\item Do you find the syntax of the micromap package easy to understand?
-\item Could the main functions of the package, create\_map\_table, mmplot, and mmgroupedplot, be improved?
-\item Is there anything about the structure of micromap objects that could be improved – for instance, in order to use micromap objects in R Shiny, or to make setting micomap plot options more expressive (such as adding plotting elements to a geom in ggplot2)?
-\item Is there some functionality of the package that you think is missing?
-\end{itemize}
+Thanks for the opportunity to review the micromaps package.  This is my first review of a software package and I honestly found it much more enjoyable than the standard journal review.  I've read the JSS article and the Introduction Guide and have also reviewed the scripts that come with each.  I've tried to review the content from the perspective of the end-user, focusing on ease of use in code execution and descriptions provided in the documentation.  I also suggest several features that can be added or tweaks to existing functions that I think could improve the package.  I realize that some of these suggestions could be considered `drastic overhauls' to the underlying structure so I present them as discussion or ideas on further development.  I'm more than happy to be a collaborator if you think any of these are worth pursuing.  
 
-Ideas:
+{\it General comments:}
+
+My main suggestion is to streamline the package by using a \texttt{SpatialPolygonsDataFrame} as sole input to the plotting functions, i.e., an all-inclusive spatial data object.  I'm questioning the separation of data in the current format.  I appreciate that separate objects can be used when lots of pre-processing is needed (i.e., polygon simplification, data summarization), and there are certainly many cases where this is appropriate, but it seems like a lot of the heavy lifting for more generic cases could be addressed under-the-hood.  I think this could greatly improve the reach of the package by improving out-of-the-box functionality, while retaining the option to provide separate map/data objects when more attention is needed.  Some related thoughts:
 \begin{itemize}
-\item Streamline use of the package functions for easier use, work only with \texttt{SpatialPolygonsDataFrame}.  Retain options to include map and stat data separately if desired, but it should work with only a \texttt{SpatialPolygonsDataFrame} object.
-\begin{itemize}
-\item It could be possible to create a very simple version of \texttt{mmplot} that works wtih only one input.
-\item The \texttt{create\_map\_table} function could be used internally within \texttt{mmplot} to skip a step.  I assume that this is used outside of \texttt{mmplot} because of the need to identify the `id' column.  I would suggest that the \texttt{create\_map\_table} function search for the `id' column automatically based on a simple matching with the columns in the stats input.  Again, this would be pretty simple if the input was a single \texttt{SpatialPolygonsDataFrame} object, i.e., the map and data attributes are already linked.
-\item Data input that is linked to the map data could be provided in raw format, with a user-supplied summary function to improve flexibility and reduce burden on the user, e.g., additional arguments passed to mmplot or mmgroupedplot
-\item Similarly, polygon simplification could be incorporated into the package, i.e., the raw spatial data in the \texttt{SpatialPolygonsDataFrame} could be used as input and simplified internally in the mmplot function using maptools or rgeos.  Options to not do this could also be included so data that have already been simplified outside of R can still be used.
+\item The \texttt{create\_map\_table} function could be used within the plotting functions to skip a step.  I assume this is needed outside of \texttt{mmplot}/\texttt{mmgroupedplot} to identify the `id' column in cases where they are different between stat/map data.  It's possible that the \texttt{create\_map\_table} function can be modified to search for the `id' column automatically based on a simple matching with the columns in the stats input.  Further, a \texttt{SpatialPolygonsDataFrame} object has spatial and statistical data already linked (right?) so this step could be avoided if it is the sole input.
+\item Stats data that are linked to the map data could be provided in raw format, with a user-supplied summary function to improve flexibility and reduce burden on the user, e.g., additional arguments passed to the plotting functions that call summary functions (see the next paragraph).
+\item Similarly, polygon simplification could be incorporated into the package, e.g., the raw spatial data in the \texttt{SpatialPolygonsDataFrame} could be used as input and simplified using functions in maptools or rgeos.  Although I agree that this is probably easier in ArcMap, I'm certain that more generic cases can be effectively handled using R's capabilities.
 \end{itemize}
-\item I appreciate that the introduction guide provides instruction on creating new panel types.  My perspective on package development is that it's useful to provide a means of customization, although users of the package will focus almost exclusively on the built-in features.  I see two potential issues that limit the package from more effectively providing these tools.  First, customization seems much too involved, which severely limits the number of users that can adopt the approach.  Second, the built-in features rely too much on the format of the input data.  Creating a better balance between these options could be the focus of further package development.  I think a limitation of the current package, as noted above, is that the input data must already be summarized to work with each of the graph types.  My suggestion is to modify the fundamental structure of \texttt{mmplot} to work with raw data.  This could allow the user to specify a pre-existing plot type on the fly (e.g., dot, bar) without having the need to summarize the data beforehand.  This could also allow the use of arbitrary functions to summarize the data.  An example of this type of functionaly is provided by the \texttt{stat\_summary} function of ggplot2.  The user has the option to summarize data using any of a number of pre-existing functions (e.g., \texttt{mean\_cl\_boot}) or can provide their own in the call the the \texttt{fun.data} argument.  I see the potential for micromaps to adopt these techniques if the raw data are included as input and a few additional functions are added to the package. 
-\item I strongly encourage use of a formal object classification scheme for defining the functions (i.e., S3 or S4).  This makes it much easier to determine what object classes can be used as input to each function.  For example, the \texttt{create\_map\_table} function requires a \texttt{SpatialPolygonsDataFrame} object as input but this it not clear from the documentation - all that is specified is `shapefile'. Defining an S3 method for this class should create a generic and \texttt{SpatialPolygonsDataFrame} definition in the help file and will also ensure that a sensible error is returned if an unsupported object class is passed to the function.  This style of documentation is really easy using the roxygen and devtools packages.  
-For example...
+I appreciate that the introduction guide provides instruction on creating new panel types, although most users will likely focus on the built-in features.  I see two potential issues that limit the package from more effectively providing these tools.  First, customization seems much too involved, which severely limits the number of users that can adopt the approach.  Second, the built-in features rely too much on the format of the summarized input data.  Creating a better balance between these options could be the focus of further package development.  A limitation of the current package, as noted above, is that the input data must already be summarized.  My suggestion is to modify \texttt{mmplot} (and \texttt{mmgroupedplot}) to work with raw data.  These changes could allow the user to specify a pre-existing plot type on the fly (e.g., dot, bar) without having to summarize beforehand.  This could also enable the use of arbitrary summary funcitons input, and potentially reduce the burden with custom maps.  An example of this type of functionality is provided by the \texttt{stat\_summary} function of ggplot2.  The user has the option to summarize data with pre-existing functions (e.g., \texttt{mean\_cl\_boot}) or they can provide their own in the call to the \texttt{fun.data} argument.
+
+The \texttt{mmgroupedplot} function is a really nice extension of \texttt{mmplot} - going from 1:1 to 1:many for the map:stats link is very intuitive.  It would be good to create a function that produces the shapefile summary that's shown at the top of the grouped plots.  The extra step on page 36 in the intro guide that adds the national summary could easily be automated.
+
+I strongly encourage an object classification scheme for defining the functions (i.e., S3 or S4), particularly for the main functions.  This makes it much easier to determine what object classes can be used as input.  For example, the \texttt{create\_map\_table} function requires a \texttt{SpatialPolygonsDataFrame} object as input but this it not clear from the documentation - all that is specified is `shapefile'. Defining an S3 method would create a generic and \texttt{SpatialPolygonsDataFrame} definition in the help file and will also return a sensible error if an unsupported object class is passed to the function.  This style of documentation is really easy using the roxygen and devtools packages.  For example, the generic function and the method for \texttt{SpatialPolygonsDataFrame} objects could be written in an R script like this:
 \begin{kframe}
 \begin{alltt}
 \hlcom{#' This is a function}
@@ -123,9 +121,14 @@ For example...
 \hlstd{\}}
 \end{alltt}
 \end{kframe}
-\item Related to the last point, the documentation could be improved in some places to clarify the exact object class required for the arguments to each function.  For example, The help file for \texttt{mmplot} indicates that \texttt{stat.data} is a `table' but this really should say `data.frame'.
-\item This is more of a personal preference, but I'm not too crazy about a new graphics device being created each time a the function is executed.  This can lead to rapid cluttering of the desktop.
-\item Maybe return a warning or error if colors does not equal length of groupings?  Alternatively, the input colors could be passed to \texttt{colorRampPalette} to create a vector of colors equal in length to \texttt{grouping} based on an arbitrary number of color inputs.  For example:
+
+{\it Specific comments:}
+
+Related to the last point, the help file documentation could be improved in some places to clarify the exact object class for the arguments to each function.  For example, The help file for \texttt{mmplot} indicates that \texttt{stat.data} is a `table' but this really should say `data.frame'.
+
+This is more of a personal preference, but I'm not too crazy about a new graphics device being created each time a plotting function is executed.  This can lead to rapid cluttering of the desktop.
+
+Maybe return a warning or error if the colors argument in the plotting functions does not equal the length of groupings.  Alternatively, the input colors could be passed to \texttt{colorRampPalette} to create a vector of colors equal in length to \texttt{grouping} based on an arbitrary number of color inputs.  For example:
 \begin{kframe}
 \begin{alltt}
 \hlstd{colors} \hlkwb{<-} \hlkwd{c}\hlstd{(}\hlstr{"red"}\hlstd{,} \hlstr{"blue"}\hlstd{)}
@@ -136,21 +139,17 @@ For example...
 \end{alltt}
 \end{kframe}
 
-\item Is the documentation in the Introduction Guide, which comes with the package, and the JSS article helpful?
-
-I had to do a bit of searching to find the Information Guide as it's buried in the R library.  Maybe include the introduction guide as a vignette - will show up in searches and as a link on the CRAN web page.  It can also be easily found with the following:
+I had to do a bit of searching to find the introduction guide as it's buried in the R library tree.  Maybe include the introduction guide as a vignette in the next CRAN release.  This way it will show up in searches and as a link on the CRAN web page.  It can also be easily found with the following:
 \begin{kframe}
 \begin{alltt}
 \hlkwd{vignette}\hlstd{(}\hlstr{'micromap'}\hlstd{)}
 \end{alltt}
 \end{kframe}
 
-The introduction guide is helpful for showing the attributes that can be passed to \texttt{mmplot}, though it may be good to also include these in the help files for the package.  My go-to for looking up function arguments are the help files yet I couldn't find any documentation outside of the introduction guide.  Perhaps adding the attributes to the respective help files could be useful, e.g., all those under the `dot' category on page 22 could go in the labels\_att file.
+The introduction guide is helpful for showing the attributes that can be passed to the plotting function, although it may be good to include these in the help files.  My go-to for looking up function arguments are the help files yet I couldn't find much of the specific documentation outside of the introduction guide.
 
-\item Seems like this package could be setup very nicely using an expressive style as in ggplot2 - this might be a lot of work though and probably requires substantial overhaul of package structure.   
-\item Aspect ratio of maps changes with manual resizing of graphics device - this was caused by \texttt{scales = `free\_y'} in the \texttt{RankMaps} function.  I suggested this is removed in a pull request to the EPA repo for micromaps.  There is actually no reason to have free y scales on the maps since each facet has the same bounding region.
-\item From JSS manuscript - add histrograms, ts, symbol plots, etc. and incorporate interactivity (via shiny)
-\item Break up ideas into easy fixes and future features...
-\end{itemize}
+The aspect ratio of maps changes with manual resizing of graphics device.  This was caused by \texttt{scales = `free\_y'} in the \texttt{RankMaps} function.  I proposed a change in a pull request to the EPA repo.  Morever, there is no reason to have free y scales on the maps since each facet has the same bounding region.
+
+Use with Shiny: I don't think there's anything that needs to be done to the structure of the package to work with Shiny.  The `reactivity' of Shiny tends to play well with most functions, so it's really more an issue of what you'd like to include in an app - what data, what map type to show, etc.  It would also be much easier to create maps on the fly if the raw data are used as input to the plot functions.  I'm interested in helping with app creation.  
 
 \end{document}
